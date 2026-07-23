@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EuroPrism</title>
+
+<!-- Link preview (WhatsApp / Telegram / Instagram DMs / X). -->
+<!-- After deploying, set the content of og:url to your public GitHub Pages URL -->
+<!-- (the same value you put in the SHARE_URL constant in the script below). -->
+<!-- Description is deliberately neutral — do NOT reveal the quiz's topic here. -->
+<meta property="og:title" content="EuroPrism">
+<meta property="og:description" content="12 questions · anonymous · your result appears at the end">
+<meta property="og:type" content="website">
+<meta property="og:url" content="">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="EuroPrism">
+<meta name="twitter:description" content="12 questions · anonymous · your result appears at the end">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap');
+
+  :root {
+    --ink: #171a21;
+    --paper: #f2f3f5;
+    --card: #ffffff;
+    --accent: #23406e;
+    --accent-soft: #e8eef7;
+    --tie-soft: #f6efe2;
+    --tie: #8a6d2f;
+    --line: #dde0e5;
+    --muted: #6b7078;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* Fill the whole viewport with --paper. body is a centered 560px column,
+     so set the page background on html too rather than relying on the
+     body→canvas background-propagation rule (which some embedding hosts break). */
+  html { background: var(--paper); }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.5;
+    padding: 24px 16px 60px;
+    max-width: 560px;
+    margin: 0 auto;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 4px;
+  }
+
+  h1 {
+    font-family: 'Newsreader', serif;
+    font-weight: 500;
+    font-size: 27px;
+    color: var(--ink);
+  }
+
+  .lang-toggle {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border: 1.5px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .lang-toggle:hover { border-color: var(--accent); }
+
+  .btn-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+  .share-btn {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border: 1.5px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .share-btn:hover { opacity: 0.85; }
+
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+
+  .progress-track {
+    height: 5px;
+    background: var(--line);
+    border-radius: 3px;
+    margin-bottom: 22px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+
+  .qnum {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .qtext {
+    font-family: 'Newsreader', serif;
+    font-size: 21px;
+    font-weight: 500;
+    line-height: 1.35;
+    margin-bottom: 14px;
+    color: var(--ink);
+  }
+
+  details {
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  details summary {
+    cursor: pointer;
+    font-weight: 500;
+    list-style: none;
+    color: var(--muted);
+  }
+  details.ctx-block summary { color: var(--accent); }
+  details.ctx-block summary::before { content: "ⓘ "; }
+  details.tie-block summary { color: var(--tie); }
+  details.tie-block summary::before { content: "⚖ "; }
+  details[open] summary { margin-bottom: 6px; }
+  details .box {
+    border-radius: 10px;
+    padding: 12px 14px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  details.ctx-block .box { background: var(--accent-soft); }
+  details.tie-block .box { background: var(--tie-soft); }
+
+  .opts-wrap { margin-top: 14px; }
+
+  .opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.45;
+    background: var(--card);
+    color: var(--ink);
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .opt:hover { border-color: var(--accent); }
+  .opt.selected {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .opt.idk { color: var(--muted); font-style: italic; }
+
+  .nav {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .nav button {
+    flex: 1;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 13px;
+    border-radius: 10px;
+    border: 1.5px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .nav .next {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .nav button:disabled { opacity: 0.4; cursor: default; }
+
+  #result { display: none; }
+  .big-pct {
+    font-family: 'Newsreader', serif;
+    font-size: 64px;
+    font-weight: 500;
+    text-align: center;
+    margin: 20px 0 4px;
+    color: var(--ink);
+  }
+  .band {
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--ink);
+  }
+  .meter {
+    height: 12px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #4a7fb5, #d8dde3, #b5564a);
+    position: relative;
+    margin-bottom: 30px;
+  }
+  .meter .pin {
+    position: absolute;
+    top: -6px;
+    width: 4px;
+    height: 24px;
+    background: var(--ink);
+    border-radius: 2px;
+    transform: translateX(-50%);
+  }
+  .meter-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: -22px;
+    margin-bottom: 28px;
+  }
+
+  .reveal-box {
+    background: var(--card);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .reveal-box h3 {
+    font-family: 'Newsreader', serif;
+    font-size: 19px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--ink);
+  }
+  .reveal-box ul { margin: 8px 0 8px 18px; }
+  .reveal-box li { margin-bottom: 5px; }
+
+  .note { font-size: 12px; color: var(--muted); text-align: center; margin-top: 16px; }
+
+  .restart {
+    display: block;
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 13px;
+    border-radius: 10px;
+    border: 1.5px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+    margin-top: 14px;
+  }
+
+  /* ---------- Share modal ---------- */
+  .share-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(23, 26, 33, 0.55);
+    z-index: 1000;
+    padding: 20px;
+    /* centering */
+    align-items: center;
+    justify-content: center;
+  }
+  .share-overlay.open { display: flex; }
+
+  .share-modal {
+    background: var(--card);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 18px 50px rgba(23, 26, 33, 0.28);
+    position: relative;
+  }
+  .share-modal h2 {
+    font-family: 'Newsreader', serif;
+    font-weight: 500;
+    font-size: 21px;
+    color: var(--ink);
+    margin-bottom: 14px;
+    padding-right: 28px;
+  }
+  .share-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    font-size: 20px;
+    line-height: 1;
+    border: 1.5px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .share-close:hover { border-color: var(--accent); }
+
+  .share-url-row { display: flex; gap: 8px; margin-bottom: 14px; }
+  .share-url-input {
+    flex: 1;
+    min-width: 0;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 11px 12px;
+  }
+  .share-copy {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 11px 16px;
+    border: 1.5px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .share-copy:hover { opacity: 0.85; }
+
+  .share-apps { display: flex; gap: 8px; }
+  .share-app {
+    flex: 1;
+    text-align: center;
+    text-decoration: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 11px;
+    border: 1.5px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    border-radius: 10px;
+  }
+  .share-app:hover { border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div id="quiz">
+  <div class="topbar">
+    <h1 id="title"></h1>
+    <div class="btn-row">
+      <button class="share-btn" id="shareBtn"></button>
+      <button class="lang-toggle" id="langBtn"></button>
+    </div>
+  </div>
+  <div class="sub" id="subtitle"></div>
+  <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+
+  <div class="qnum" id="qnum"></div>
+  <div class="qtext" id="qtext"></div>
+  <details class="ctx-block" id="ctxbox"><summary id="ctxsum"></summary><div class="box" id="ctx"></div></details>
+  <details class="tie-block" id="tiebox"><summary id="tiesum"></summary><div class="box" id="tie"></div></details>
+  <div class="opts-wrap" id="opts"></div>
+
+  <div class="nav">
+    <button id="back"></button>
+    <button class="next" id="next" disabled></button>
+  </div>
+</div>
+
+<div id="result">
+  <div class="topbar">
+    <h1 id="rtitle"></h1>
+    <div class="btn-row">
+      <button class="share-btn" id="shareBtn2"></button>
+      <button class="lang-toggle" id="langBtn2"></button>
+    </div>
+  </div>
+  <div class="big-pct" id="pct"></div>
+  <div class="band" id="band"></div>
+  <div class="meter"><div class="pin" id="pin"></div></div>
+  <div class="meter-labels"><span id="ml0"></span><span id="ml100"></span></div>
+
+  <div class="reveal-box"><h3 id="r1h"></h3><p id="r1p"></p></div>
+  <div class="reveal-box"><h3 id="r2h"></h3><ul id="r2ul"></ul><p id="r2p"></p></div>
+  <div class="reveal-box" id="interpbox"><h3 id="r3h"></h3><p id="r3p"></p></div>
+
+  <div class="note" id="rnote"></div>
+  <button class="restart" onclick="location.reload()" id="rbtn"></button>
+</div>
+
+<div class="share-overlay" id="shareOverlay">
+  <div class="share-modal" role="dialog" aria-modal="true" aria-labelledby="shareHeading">
+    <button class="share-close" id="shareClose" aria-label="Close">×</button>
+    <h2 id="shareHeading"></h2>
+    <div class="share-url-row">
+      <input type="text" class="share-url-input" id="shareUrlInput" readonly>
+      <button class="share-copy" id="shareCopyBtn"></button>
+    </div>
+    <div class="share-apps">
+      <a class="share-app" id="shareWhatsApp" target="_blank" rel="noopener">WhatsApp</a>
+      <a class="share-app" id="shareTelegram" target="_blank" rel="noopener">Telegram</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// Set this to the public GitHub Pages URL after deploying.
+// If left empty, falls back to location.href.
+const SHARE_URL = "";
+
+// ---------- UI strings ----------
+const UI = {
+  pt: {
+    title: "EuroPrism",
+    subtitle: "12 perguntas · anónimo · o resultado aparece no fim",
+    langBtn: "EN — switch to English",
+    shareBtn: "Partilhar",
+    shareCopied: "Link copiado!",
+    shareText: "Faz este questionário e vê onde te posicionas:",
+    shareHeading: "Partilhar este questionário",
+    shareCopy: "Copiar",
+    shareCopyDone: "Copiado!",
+    ctxsum: "Contexto (opcional)",
+    tiesum: "Indeciso entre duas opções? Faz o teste",
+    back: "← Voltar",
+    next: "Seguinte →",
+    seeResult: "Ver resultado",
+    qOf: (a, b) => `Pergunta ${a} de ${b}`,
+    idk: "Não sei / prefiro não responder",
+    rtitle: "O teu resultado",
+    ml0: "0% — oposição total",
+    ml100: "100% — apoio total",
+    r1h: "O que é que este questionário mediu?",
+    r1p: "Este questionário mediu o teu grau de alinhamento com o <b>Save Europe Act</b> — uma Iniciativa de Cidadania Europeia lançada em 2026 (Eva Vlaardingerbroek, Martin Sellner; apoiada por Viktor Orbán, VOX, Chega, entre outros), que já ultrapassou 500 mil assinaturas e pretende chegar a 1 milhão para obrigar a Comissão Europeia a responder.",
+    r2h: "O que propõe o Act",
+    r2items: [
+      "<b>Art. 1:</b> moratória à imigração não-europeia (incluindo vistos de estudo e reagrupamento familiar) e suspensão de asilo para requerentes de países seguros;",
+      "<b>Art. 2:</b> reforma das fronteiras com barreiras físicas e tecnológicas e mecanismos de retorno imediato;",
+      "<b>Art. 3:</b> deportação sistemática de migrantes ilegais, requerentes recusados e criminosos;",
+      "<b>Art. 4:</b> \"remigração\" incentivada de migrantes legais considerados não-integrados ou um \"fardo cultural/financeiro\", para restaurar o \"equilíbrio demográfico\";",
+      "<b>Art. 5:</b> corte de apoios sociais a migrantes como forma de dissuasão."
+    ],
+    r2p: "A Comissão Europeia avisou que pode recusar o registo da iniciativa por partes dela poderem constituir discriminação étnica.",
+    r3h: "Interpretação",
+    rnote: "Aproximação pedagógica, não um instrumento científico. Cada resposta foi ponderada pela proximidade à posição do Act no tema correspondente; respostas \"não sei\" não contam para a média. A ordem das respostas é aleatória em cada abertura.",
+    rbtn: "Refazer",
+    undefinedBand: "Posição indefinida",
+    undefinedText: "Respondeste \"não sei\" à maioria das perguntas, por isso não é possível calcular uma posição fiável. E isso também é uma resposta válida — este é um tema em que muita gente ainda está a formar opinião.",
+    bands: [
+      ["Forte oposição", "As tuas respostas rejeitam quase todos os pilares do Save Europe Act — tanto as medidas concretas como a premissa de fundo da preservação etnodemográfica."],
+      ["Tendencialmente contra", "Podes concordar com pontos específicos (por ex., deportação de criminosos ou melhor controlo de fronteiras), mas rejeitas o enquadramento central do Act — em particular a lógica categórica baseada na origem."],
+      ["Posição mista", "Estás genuinamente dividido: concordas com uma parte substancial das medidas de controlo, mas resistes às propostas mais radicais (remigração de residentes legais, objetivos demográficos explícitos)."],
+      ["Tendencialmente a favor", "Alinhas com a maioria das propostas do Act, embora provavelmente com reservas nalgumas das medidas mais duras ou na sua fundamentação etnocultural."],
+      ["Forte alinhamento", "As tuas respostas coincidem com praticamente todas as propostas e premissas do Save Europe Act."]
+    ],
+    bandSuffix: " ao Save Europe Act"
+  },
+  en: {
+    title: "EuroPrism",
+    subtitle: "12 questions · anonymous · your result appears at the end",
+    langBtn: "PT — mudar para Português",
+    shareBtn: "Share",
+    shareCopied: "Link copied!",
+    shareText: "Take this quiz and see where you stand:",
+    shareHeading: "Share this quiz",
+    shareCopy: "Copy",
+    shareCopyDone: "Copied!",
+    ctxsum: "Context (optional)",
+    tiesum: "Torn between two options? Take the test",
+    back: "← Back",
+    next: "Next →",
+    seeResult: "See result",
+    qOf: (a, b) => `Question ${a} of ${b}`,
+    idk: "Don't know / prefer not to answer",
+    rtitle: "Your result",
+    ml0: "0% — full opposition",
+    ml100: "100% — full support",
+    r1h: "What did this quiz measure?",
+    r1p: "This quiz measured your degree of alignment with the <b>Save Europe Act</b> — a European Citizens' Initiative launched in 2026 (Eva Vlaardingerbroek, Martin Sellner; endorsed by Viktor Orbán, VOX, Chega, among others), which has passed 500,000 signatures and aims for 1 million to force the European Commission to respond.",
+    r2h: "What the Act proposes",
+    r2items: [
+      "<b>Art. 1:</b> a moratorium on non-European immigration (including study and family reunification visas) and suspension of asylum processing for applicants from safe countries;",
+      "<b>Art. 2:</b> border reform with physical and technological barriers and immediate return mechanisms;",
+      "<b>Art. 3:</b> systematic deportation of illegal migrants, rejected asylum seekers, and criminals;",
+      "<b>Art. 4:</b> incentivized \"remigration\" of legal migrants deemed unintegrated or a \"cultural/financial burden,\" to restore \"demographic balance\";",
+      "<b>Art. 5:</b> cutting welfare benefits for migrants as a deterrent."
+    ],
+    r2p: "The European Commission has warned it may refuse to register the initiative because parts of it could constitute ethnic discrimination.",
+    r3h: "Interpretation",
+    rnote: "A pedagogical approximation, not a scientific instrument. Each answer was weighted by its proximity to the Act's position on the corresponding theme; \"don't know\" answers don't count toward the average. Answer order is randomized on each load.",
+    rbtn: "Retake",
+    undefinedBand: "Undefined position",
+    undefinedText: "You answered \"don't know\" to most questions, so a reliable position can't be calculated. That's also a valid answer — this is a topic on which many people are still forming their views.",
+    bands: [
+      ["Strong opposition", "Your answers reject nearly all pillars of the Save Europe Act — both the concrete measures and the underlying premise of ethno-demographic preservation."],
+      ["Leaning against", "You may agree with specific points (e.g., deporting criminals or better border control), but you reject the Act's central framing — particularly its categorical logic based on origin."],
+      ["Mixed position", "You are genuinely split: you agree with a substantial share of the control measures, but resist the most radical proposals (remigration of legal residents, explicit demographic targets)."],
+      ["Leaning in favor", "You align with most of the Act's proposals, though probably with reservations about some of the harshest measures or their ethnocultural rationale."],
+      ["Strong alignment", "Your answers coincide with practically all of the Save Europe Act's proposals and premises."]
+    ],
+    bandSuffix: " with the Save Europe Act"
+  }
+};
+
+// ---------- Questions (5 substantive options each; idk appended automatically) ----------
+const Q = [
+  {
+    q: { pt: "O que deve o Estado proteger ativamente na identidade do seu país?",
+         en: "What should the state actively protect about its country's identity?" },
+    ctx: { pt: "Exemplo prático: 'proteger a composição étnica' significaria políticas com o objetivo explícito de manter a maioria étnica histórica. 'Proteger só a cultura' significaria financiar língua, tradições e património — independentemente da origem de quem os pratica.",
+           en: "Practical example: 'protecting ethnic composition' would mean policies explicitly aimed at maintaining the historic ethnic majority. 'Protecting only culture' would mean funding language, traditions, and heritage — regardless of the origin of those who practice them." },
+    tie: { pt: "Teste rápido: imagina que daqui a 50 anos a língua e a cultura continuam fortes, mas grande parte de quem as vive tem origens não-europeias. Isso seria um problema que o Estado deveria ter evitado? Se sim → escolhe a opção que inclui a composição étnica. Se o que importa é a continuidade da cultura, não a origem de quem a pratica → escolhe uma opção só cultural.",
+           en: "Quick test: imagine in 50 years the language and culture remain strong, but many of the people living them have non-European origins. Would that be a problem the state should have prevented? If yes → pick the option that includes ethnic composition. If what matters is the continuity of the culture, not the origin of who practices it → pick a culture-only option." },
+    opts: [
+      { t: { pt: "A cultura, a língua E a composição étnica/demográfica da população nativa", en: "The culture, the language AND the ethnic/demographic composition of the native population" }, s: 100 },
+      { t: { pt: "Sobretudo a cultura e a língua — mas na seleção de imigração pode dar-se preferência a países culturalmente próximos", en: "Mainly culture and language — but immigration selection may favor culturally closer countries" }, s: 70 },
+      { t: { pt: "A cultura, a língua e as tradições — nunca a composição étnica", en: "The culture, language and traditions — never the ethnic composition" }, s: 50 },
+      { t: { pt: "Apenas apoio ligeiro ao património e à língua; identidade é sobretudo assunto da sociedade civil", en: "Only light support for heritage and language; identity is mainly a civil society matter" }, s: 25 },
+      { t: { pt: "Nada disso: identidade não é assunto para leis do Estado", en: "None of it: identity is not a matter for state law" }, s: 0 },
+    ]
+  },
+  {
+    q: { pt: "Como vês a mudança demográfica causada pela imigração nas últimas décadas na Europa?",
+         en: "How do you see the demographic change caused by immigration in recent decades in Europe?" },
+    ctx: { pt: "Facto neutro: em vários países da Europa Ocidental, a percentagem de residentes nascidos no estrangeiro ou com origem estrangeira cresceu significativamente desde os anos 90. A interpretação desse facto é o que divide opiniões.",
+           en: "Neutral fact: in several Western European countries, the share of residents born abroad or with foreign origins has grown significantly since the 1990s. How to interpret that fact is what divides opinion." },
+    tie: { pt: "Entre 'ameaça a reverter' e 'problema grave': achas que é preciso reverter ativamente o que já aconteceu (ameaça) ou sobretudo travar a tendência daqui para a frente (problema grave)? Entre 'evolução natural' e 'enriquecimento': a primeira vê custos e benefícios em equilíbrio; a segunda vê um saldo claramente positivo.",
+           en: "Between 'threat to reverse' and 'serious problem': do you think what already happened must be actively reversed (threat) or mainly stopped going forward (serious problem)? Between 'natural evolution' and 'enrichment': the first sees costs and benefits in balance; the second sees a clearly positive net effect." },
+    opts: [
+      { t: { pt: "Uma ameaça existencial — uma 'substituição' que deve ser revertida", en: "An existential threat — a 'replacement' that must be reversed" }, s: 100 },
+      { t: { pt: "Um problema grave que já foi longe demais nalguns países e deve ser travado", en: "A serious problem that has gone too far in some countries and must be stopped" }, s: 75 },
+      { t: { pt: "Um desafio real que exige melhor gestão, mas não uma 'substituição'", en: "A real challenge requiring better management, but not a 'replacement'" }, s: 50 },
+      { t: { pt: "Uma evolução natural das sociedades, com custos e benefícios", en: "A natural evolution of societies, with costs and benefits" }, s: 25 },
+      { t: { pt: "Sobretudo um enriquecimento das sociedades europeias", en: "Mostly an enrichment of European societies" }, s: 0 },
+    ]
+  },
+  {
+    q: { pt: "Que política defenderias para a imigração de fora da Europa (legal e ilegal) neste momento?",
+         en: "What policy would you support for immigration from outside Europe (legal and illegal) right now?" },
+    ctx: { pt: "Exemplo: uma 'moratória' significaria suspender novos canais de entrada — sem novos vistos de trabalho, estudo ou reagrupamento para cidadãos de fora da Europa — até se considerar restaurada a coesão social.",
+           en: "Example: a 'moratorium' would mean suspending new entry channels — no new work, study, or family reunification visas for citizens from outside Europe — until social cohesion is considered restored." },
+    tie: { pt: "Entre 'parar totalmente' e 'quase parar': aceitarias exceções raras para perfis críticos (médicos, por ex.)? Se sim → quase parar. Se nenhum canal deveria abrir → parar totalmente. Entre 'reduzir' e 'manter com fiscalização': o problema é o volume em si (reduzir) ou só o descontrolo (fiscalizar)?",
+           en: "Between 'fully halt' and 'near-halt': would you accept rare exceptions for critical profiles (e.g., doctors)? If yes → near-halt. If no channel should open → fully halt. Between 'reduce' and 'keep with enforcement': is the problem the volume itself (reduce) or just the lack of control (enforce)?" },
+    opts: [
+      { t: { pt: "Parar totalmente novas entradas não-europeias (moratória)", en: "Fully halt new non-European entries (moratorium)" }, s: 100 },
+      { t: { pt: "Quase parar — só exceções raras para perfis críticos", en: "Near-halt — only rare exceptions for critical profiles" }, s: 75 },
+      { t: { pt: "Reduzir fortemente, mantendo canais limitados e seletivos", en: "Strongly reduce, keeping limited and selective channels" }, s: 50 },
+      { t: { pt: "Manter os níveis atuais com melhor fiscalização", en: "Keep current levels with better enforcement" }, s: 25 },
+      { t: { pt: "Aumentar as vias legais e seguras de imigração", en: "Expand legal and safe immigration pathways" }, s: 0 },
+    ]
+  },
+  {
+    q: { pt: "O que fazer com pedidos de asilo de cidadãos de países considerados 'seguros'?",
+         en: "What should happen to asylum applications from citizens of countries considered 'safe'?" },
+    ctx: { pt: "Exemplo: um cidadão da Geórgia ou da Índia (países geralmente classificados como 'seguros') pede asilo na UE. Hoje, cada pedido é analisado individualmente, mesmo que a taxa de aprovação seja baixa.",
+           en: "Example: a citizen of Georgia or India (countries generally classified as 'safe') applies for asylum in the EU. Today, every application is reviewed individually, even if the approval rate is low." },
+    tie: { pt: "O teste decisivo: deve existir sequer a possibilidade de um pedido individual vindo de país 'seguro' ser aprovado dentro do território? Se não → recusa automática. Se sim, mas com presunção contra e recurso só do estrangeiro → presunção de recusa. Se sim, com análise cá mas mais rápida → processo acelerado.",
+           en: "The deciding test: should there even be a possibility of an individual application from a 'safe' country being approved in-territory? If no → automatic refusal. If yes, but with a presumption against and appeal only from abroad → presumption of refusal. If yes, reviewed here but faster → accelerated processing." },
+    opts: [
+      { t: { pt: "Recusar automaticamente, sem análise individual", en: "Refuse automatically, without individual review" }, s: 100 },
+      { t: { pt: "Presunção de recusa — recurso possível apenas a partir do estrangeiro", en: "Presumption of refusal — appeal possible only from abroad" }, s: 75 },
+      { t: { pt: "Processo acelerado, mas mantendo análise individual", en: "Accelerated processing, but keeping individual review" }, s: 50 },
+      { t: { pt: "Análise individual normal, com alguma priorização de casos", en: "Normal individual review, with some case prioritization" }, s: 25 },
+      { t: { pt: "Análise individual completa e igual para todos, como hoje", en: "Full and equal individual review for everyone, as today" }, s: 0 },
+    ]
+  },
+  {
+    q: { pt: "Vistos de estudo e de reagrupamento familiar para cidadãos de fora da Europa — manter ou suspender?",
+         en: "Study visas and family reunification visas for citizens from outside Europe — keep or suspend?" },
+    ctx: { pt: "Exemplo: um estudante brasileiro ou indiano aceite numa universidade europeia; ou um residente legal marroquino que quer trazer a esposa. Ambos os canais seriam suspensos ao abrigo do Art. 1 do documento em causa.",
+           en: "Example: a Brazilian or Indian student accepted at a European university; or a legal Moroccan resident who wants to bring his wife. Both channels would be suspended under Art. 1 of the document in question." },
+    tie: { pt: "Se hesitas: qual dos dois canais te preocupa realmente? Só o reagrupamento → 'suspender reagrupamento, manter estudo'. Nenhum em particular, mas os critérios parecem-te fáceis demais → 'critérios mais exigentes'. Ambos deviam fechar → 'suspender ambos'.",
+           en: "If you're torn: which of the two channels actually concerns you? Only reunification → 'suspend reunification, keep study'. Neither in particular, but the criteria seem too easy → 'stricter criteria'. Both should close → 'suspend both'." },
+    opts: [
+      { t: { pt: "Suspender ambos os canais para não-europeus", en: "Suspend both channels for non-Europeans" }, s: 100 },
+      { t: { pt: "Suspender/limitar o reagrupamento, mas manter os vistos de estudo", en: "Suspend/limit reunification, but keep study visas" }, s: 70 },
+      { t: { pt: "Manter ambos, com critérios muito mais exigentes", en: "Keep both, with much stricter criteria" }, s: 45 },
+      { t: { pt: "Manter ambos aproximadamente como estão", en: "Keep both roughly as they are" }, s: 20 },
+      { t: { pt: "Facilitar ambos os canais", en: "Make both channels easier" }, s: 0 },
+    ]
+  },
+  {
+    q: { pt: "Que abordagem defendes para as fronteiras externas da UE?",
+         en: "What approach do you support for the EU's external borders?" },
+    ctx: { pt: "Exemplo: a Polónia construiu uma barreira física na fronteira com a Bielorrússia em 2022; a Grécia usa vigilância tecnológica no Egeu. A questão é se este modelo deve ser generalizado a toda a fronteira externa da UE.",
+           en: "Example: Poland built a physical barrier on its border with Belarus in 2022; Greece uses technological surveillance in the Aegean. The question is whether this model should be extended to the EU's entire external border." },
+    tie: { pt: "Pergunta-te: o problema principal está na fronteira em si (infraestrutura insuficiente) ou no sistema à volta dela (falta de acordos, falta de vias legais)? Infraestrutura em todo o lado → barreiras em larga escala. Só nos pontos de pressão → barreiras seletivas. Sistema → cooperação.",
+           en: "Ask yourself: is the main problem the border itself (insufficient infrastructure) or the system around it (lack of agreements, lack of legal pathways)? Infrastructure everywhere → large-scale barriers. Only at pressure points → selective barriers. The system → cooperation." },
+    opts: [
+      { t: { pt: "Barreiras físicas e tecnológicas em larga escala + retornos imediatos", en: "Large-scale physical and technological barriers + immediate returns" }, s: 100 },
+      { t: { pt: "Barreiras físicas apenas nos pontos de maior pressão + tecnologia no resto", en: "Physical barriers only at high-pressure points + technology elsewhere" }, s: 75 },
+      { t: { pt: "Mais tecnologia e patrulhamento, sem barreiras físicas generalizadas", en: "More technology and patrols, without generalized physical barriers" }, s: 50 },
+      { t: { pt: "O foco deve estar em cooperação com países de origem e vias legais", en: "The focus should be cooperation with origin countries and legal pathways" }, s: 20 },
+      { t: { pt: "As fronteiras estão suficientemente controladas", en: "Borders are sufficiently controlled already" }, s: 0 },
+    ]
+  },
+  {
+    q: { pt: "O que fazer com migrantes em situação ilegal e requerentes de asilo recusados que permanecem na Europa?",
+         en: "What should happen to migrants staying illegally and rejected asylum seekers who remain in Europe?" },
+    ctx: { pt: "Facto neutro: hoje, uma parte significativa das ordens de retorno na UE não é executada, por razões práticas (falta de acordos de readmissão) e jurídicas (laços familiares, risco no país de origem).",
+           en: "Neutral fact: today, a significant share of return orders in the EU are not carried out, for practical reasons (lack of readmission agreements) and legal ones (family ties, risk in the country of origin)." },
+    tie: { pt: "O teste: os laços familiares ou o risco no país de origem devem poder travar uma deportação? Nunca → deportação sistemática. Só em casos extremos → regra com exceções estreitas. Frequentemente → salvaguardas amplas. E para quem já trabalha e está enraizado: deportar ou regularizar?",
+           en: "The test: should family ties or risk in the origin country be able to stop a deportation? Never → systematic deportation. Only in extreme cases → rule with narrow exceptions. Often → broad safeguards. And for those already working and rooted: deport or regularize?" },
+    opts: [
+      { t: { pt: "Deportação sistemática e acelerada de todos", en: "Systematic and accelerated deportation of all" }, s: 100 },
+      { t: { pt: "Deportar como regra, com exceções muito estreitas", en: "Deport as the rule, with very narrow exceptions" }, s: 75 },
+      { t: { pt: "Deportar, mas com salvaguardas amplas caso a caso (família, risco)", en: "Deport, but with broad case-by-case safeguards (family, risk)" }, s: 50 },
+      { t: { pt: "Regularizar os que trabalham e estão enraizados; deportar os restantes", en: "Regularize those working and rooted; deport the rest" }, s: 25 },
+      { t: { pt: "Regularização ampla de quem já cá vive", en: "Broad regularization of those already living here" }, s: 0 },
+    ]
+  },
+  {
+    q: { pt: "Estrangeiros condenados por crimes graves — expulsão?",
+         en: "Foreigners convicted of serious crimes — expulsion?" },
+    ctx: { pt: "Exemplo: um residente legal condenado por agressão grave. A questão inclui casos complexos: e se chegou em criança? E se tem filhos nascidos cá? E se o país de origem é perigoso?",
+           en: "Example: a legal resident convicted of serious assault. The question includes complex cases: what if they arrived as a child? What if they have children born here? What if the origin country is dangerous?" },
+    tie: { pt: "O teste: alguém que chegou com 2 anos e cresceu cá comete um crime grave — a expulsão continua a fazer-te sentido? Sem hesitar → sem exceções. Hesitas nesse caso mas em poucos outros → exceções muito limitadas. Hesitas em vários tipos de caso → avaliação caso a caso.",
+           en: "The test: someone who arrived at age 2 and grew up here commits a serious crime — does expulsion still make sense to you? Without hesitation → no exceptions. You hesitate on that case but few others → very limited exceptions. You hesitate on several kinds of cases → case-by-case assessment." },
+    opts: [
+      { t: { pt: "Sim — crime grave significa expulsão, sem exceções", en: "Yes — serious crime means expulsion, no exceptions" }, s: 100 },
+      { t: { pt: "Expulsão por defeito, com exceções muito limitadas", en: "Expulsion by default, with very limited exceptions" }, s: 75 },
+      { t: { pt: "Em regra sim, mas com avaliação caso a caso (chegou em criança, família, risco)", en: "Generally yes, but with case-by-case assessment (arrived as a child, family, risk)" }, s: 50 },
+      { t: { pt: "Só para os crimes mais graves, depois de cumprida a pena cá", en: "Only for the most serious crimes, after serving the sentence here" }, s: 25 },
+      { t: { pt: "Cumprir pena cá, como qualquer cidadão, sem expulsão adicional", en: "Serve the sentence here, like any citizen, without additional expulsion" }, s: 0 },
+    ]
+  },
+  {
+    q: { pt: "Deveria existir um programa europeu de 'remigração' incentivada para migrantes legais considerados não-integrados?",
+         en: "Should there be a European program of incentivized 'remigration' for legal migrants considered unintegrated?" },
+    ctx: { pt: "Exemplo concreto: um residente legal de origem não-europeia, desempregado há anos e sem falar a língua local, receberia uma oferta financeira do Estado para regressar ao país de origem. Não seria (em teoria) obrigatório, mas seria uma política ativa dirigida a este grupo.",
+           en: "Concrete example: a legal resident of non-European origin, unemployed for years and not speaking the local language, would receive a financial offer from the state to return to their country of origin. It wouldn't (in theory) be mandatory, but it would be an active policy targeted at this group." },
+    tie: { pt: "A diferença-chave é quem toma a iniciativa e a quem se dirige: o Estado identifica e aborda ativamente os 'não-integrados' → programas dirigidos. Incentivos anunciados a todos, sem alvo definido → incentivos gerais. O Estado só responde a quem já decidiu partir → apoio a voluntários.",
+           en: "The key difference is who takes the initiative and who is targeted: the state actively identifies and approaches the 'unintegrated' → targeted programs. Incentives advertised to all, no defined target → general incentives. The state only responds to those who already decided to leave → support for volunteers." },
+    opts: [
+      { t: { pt: "Sim — programas ativos e incentivados dirigidos aos não-integrados", en: "Yes — active, incentivized programs targeted at the unintegrated" }, s: 100 },
+      { t: { pt: "Incentivos de regresso gerais, anunciados a todos os migrantes, sem alvos definidos", en: "General return incentives, advertised to all migrants, no defined targets" }, s: 70 },
+      { t: { pt: "Apenas apoio a quem, por si próprio, já quer regressar", en: "Only support for those who, on their own, already want to return" }, s: 40 },
+      { t: { pt: "Nenhum programa; o Estado deve ser neutro quanto a partidas", en: "No program; the state should be neutral about departures" }, s: 20 },
+      { t: { pt: "Não — residentes legais têm direito a ficar; a resposta é melhor integração", en: "No — legal residents have the right to stay; the answer is better integration" }, s: 0 },
+    ]
+  },
+  {
+    q: { pt: "Pode a 'restauração do equilíbrio demográfico' (aumentar o peso da população nativa) ser um objetivo legítimo de políticas públicas?",
+         en: "Can 'restoring demographic balance' (increasing the share of the native population) be a legitimate goal of public policy?" },
+    ctx: { pt: "Distinção útil: uma coisa é gerir o volume total de imigração; outra é definir como objetivo explícito a proporção étnica da população. Esta pergunta é sobre a segunda.",
+           en: "Useful distinction: one thing is managing the total volume of immigration; another is setting the ethnic proportion of the population as an explicit goal. This question is about the second." },
+    tie: { pt: "O teste: aceitarias tratar de forma diferente dois imigrantes com perfil idêntico, apenas pela origem étnica? Sim, abertamente → objetivo legítimo. Não por etnia, mas por proximidade cultural na seleção → preferência cultural. Gerir volumes sim, origem nunca → volumes sem etnia.",
+           en: "The test: would you accept treating two immigrants with identical profiles differently, based only on ethnic origin? Yes, openly → legitimate goal. Not by ethnicity, but by cultural proximity in selection → cultural preference. Managing volumes yes, origin never → volumes without ethnicity." },
+    opts: [
+      { t: { pt: "Sim — é um objetivo legítimo e necessário", en: "Yes — it is a legitimate and necessary goal" }, s: 100 },
+      { t: { pt: "Por etnia não, mas a seleção pode preferir origens culturalmente próximas", en: "Not by ethnicity, but selection may prefer culturally closer origins" }, s: 70 },
+      { t: { pt: "O Estado pode gerir volumes de imigração, mas nunca por critério étnico", en: "The state can manage immigration volumes, but never by ethnic criterion" }, s: 45 },
+      { t: { pt: "Volumes só por razões de capacidade (habitação, serviços); a composição é irrelevante", en: "Volumes only for capacity reasons (housing, services); composition is irrelevant" }, s: 20 },
+      { t: { pt: "Não — a composição étnica nunca é um objetivo legítimo de política pública", en: "No — ethnic composition is never a legitimate goal of public policy" }, s: 0 },
+    ]
+  },
+  {
+    q: { pt: "Devem os apoios sociais ser reduzidos para migrantes recém-chegados, especificamente para desincentivar a imigração?",
+         en: "Should welfare benefits be reduced for recently arrived migrants, specifically to discourage immigration?" },
+    ctx: { pt: "Exemplo: na Dinamarca, certos apoios exigem anos de residência prévia. A questão é usar o corte de apoios deliberadamente como instrumento de dissuasão migratória — não apenas por razões orçamentais ou contributivas.",
+           en: "Example: in Denmark, certain benefits require years of prior residence. The question is about using benefit cuts deliberately as a migration deterrent — not merely for budgetary or contributory reasons." },
+    tie: { pt: "Distinção fina: cortar para tornar o país menos atrativo → dissuasão deliberada. Restringir de forma geral a não-cidadãos, independentemente do motivo → restrição ampla. Exigir tempo/contribuições por justiça contributiva → condicionalidade. Igualdade nos apoios básicos → acesso igual.",
+           en: "Fine distinction: cutting to make the country less attractive → deliberate deterrence. Broadly restricting non-citizens regardless of reason → broad restriction. Requiring time/contributions for contributory fairness → conditionality. Equality in basic benefits → equal access." },
+    opts: [
+      { t: { pt: "Sim — cortar/atrasar apoios como política deliberada de dissuasão", en: "Yes — cut/delay benefits as a deliberate deterrence policy" }, s: 100 },
+      { t: { pt: "Restringir substancialmente os apoios a não-cidadãos em geral", en: "Substantially restrict benefits for non-citizens in general" }, s: 70 },
+      { t: { pt: "Alguma condicionalidade (tempo de residência, contribuições), mas não como arma de dissuasão", en: "Some conditionality (residence time, contributions), but not as a deterrence weapon" }, s: 50 },
+      { t: { pt: "Condições mínimas; apoios essencialmente iguais", en: "Minimal conditions; essentially equal benefits" }, s: 25 },
+      { t: { pt: "Não — apoios básicos devem ser iguais para residentes legais", en: "No — basic benefits should be equal for legal residents" }, s: 0 },
+    ]
+  },
+  {
+    q: { pt: "A imigração ajuda a resolver o envelhecimento da população e a sustentabilidade do Estado social?",
+         en: "Does immigration help solve population ageing and the sustainability of the welfare state?" },
+    ctx: { pt: "Facto neutro: a UE tem uma das populações mais envelhecidas do mundo. Economistas divergem: uns apontam contribuições fiscais líquidas positivas de migrantes empregados; outros apontam custos quando a integração no mercado de trabalho falha.",
+           en: "Neutral fact: the EU has one of the most aged populations in the world. Economists diverge: some point to positive net fiscal contributions from employed migrants; others point to costs when labor market integration fails." },
+    tie: { pt: "Se hesitas: consegues imaginar perfis claramente positivos para a economia (profissionais qualificados empregados)? Nem esses compensam → agrava. A solução verdadeira está na natalidade nativa → natalidade. Alguns sim, outros não → depende do perfil. Quase todos compensam → ajuda em geral.",
+           en: "If you're torn: can you imagine profiles clearly positive for the economy (employed skilled professionals)? Even those don't compensate → worsens. The true solution lies in native birthrates → birthrates. Some yes, some no → depends on profile. Nearly all compensate → helps overall." },
+    opts: [
+      { t: { pt: "Não — agrava os problemas e sobrecarrega o Estado social", en: "No — it worsens the problems and overburdens the welfare state" }, s: 100 },
+      { t: { pt: "Pouco ajuda; a verdadeira solução é aumentar a natalidade nativa", en: "It helps little; the real solution is raising native birthrates" }, s: 70 },
+      { t: { pt: "Depende totalmente do perfil e da integração no mercado de trabalho", en: "It depends entirely on the profile and labor market integration" }, s: 50 },
+      { t: { pt: "Em geral ajuda, embora a integração nem sempre funcione", en: "It generally helps, though integration doesn't always work" }, s: 25 },
+      { t: { pt: "Sim — é essencial para as pensões e para a mão-de-obra", en: "Yes — it is essential for pensions and the workforce" }, s: 0 },
+    ]
+  },
+];
+
+// ---------- State ----------
+let lang = 'pt';
+let idx = 0;
+const answers = new Array(Q.length).fill(undefined); // stores original option index or 'idk'
+// shuffle order per question (Fisher–Yates), computed once per page load
+const order = Q.map(q => {
+  const arr = q.opts.map((_, i) => i);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+});
+
+// ---------- Elements ----------
+const $ = id => document.getElementById(id);
+
+function applyChrome() {
+  const u = UI[lang];
+  $('title').textContent = u.title;
+  $('subtitle').textContent = u.subtitle;
+  $('langBtn').textContent = u.langBtn;
+  $('langBtn2').textContent = u.langBtn;
+  $('shareBtn').textContent = u.shareBtn;
+  $('shareBtn2').textContent = u.shareBtn;
+  $('ctxsum').textContent = u.ctxsum;
+  $('tiesum').textContent = u.tiesum;
+  $('back').textContent = u.back;
+  document.documentElement.lang = lang;
+}
+
+function render() {
+  applyChrome();
+  const u = UI[lang];
+  const item = Q[idx];
+  $('qnum').textContent = u.qOf(idx + 1, Q.length);
+  $('qtext').textContent = item.q[lang];
+  $('ctx').textContent = item.ctx[lang];
+  $('tie').textContent = item.tie[lang];
+  $('ctxbox').open = false;
+  $('tiebox').open = false;
+  $('prog').style.width = (idx / Q.length * 100) + '%';
+
+  const opts = $('opts');
+  opts.innerHTML = '';
+  // substantive options in shuffled order
+  order[idx].forEach(origI => {
+    const o = item.opts[origI];
+    const b = document.createElement('button');
+    b.className = 'opt' + (answers[idx] === origI ? ' selected' : '');
+    b.textContent = o.t[lang];
+    b.onclick = () => { answers[idx] = origI; render(); };
+    opts.appendChild(b);
+  });
+  // idk always last
+  const bi = document.createElement('button');
+  bi.className = 'opt idk' + (answers[idx] === 'idk' ? ' selected' : '');
+  bi.textContent = u.idk;
+  bi.onclick = () => { answers[idx] = 'idk'; render(); };
+  opts.appendChild(bi);
+
+  $('back').disabled = idx === 0;
+  $('next').disabled = answers[idx] === undefined;
+  $('next').textContent = idx === Q.length - 1 ? u.seeResult : u.next;
+}
+
+$('back').onclick = () => { if (idx > 0) { idx--; render(); } };
+$('next').onclick = () => {
+  if (idx < Q.length - 1) { idx++; render(); }
+  else showResult();
+};
+
+let finalPct = null, undefinedResult = false;
+
+function showResult() {
+  let sum = 0, n = 0;
+  answers.forEach((a, i) => {
+    if (a !== 'idk' && a !== undefined) { sum += Q[i].opts[a].s; n++; }
+  });
+
+  undefinedResult = n < 4;
+  finalPct = undefinedResult ? null : Math.round(sum / n);
+
+  $('quiz').style.display = 'none';
+  $('result').style.display = 'block';
+  renderResult();
+}
+
+function renderResult() {
+  const u = UI[lang];
+  $('rtitle').textContent = u.rtitle;
+  $('langBtn2').textContent = u.langBtn;
+  $('shareBtn2').textContent = u.shareBtn;
+  $('ml0').textContent = u.ml0;
+  $('ml100').textContent = u.ml100;
+  $('r1h').textContent = u.r1h;
+  $('r1p').innerHTML = u.r1p;
+  $('r2h').textContent = u.r2h;
+  $('r2ul').innerHTML = u.r2items.map(x => '<li>' + x + '</li>').join('');
+  $('r2p').innerHTML = u.r2p;
+  $('r3h').textContent = u.r3h;
+  $('rnote').textContent = u.rnote;
+  $('rbtn').textContent = u.rbtn;
+
+  if (undefinedResult) {
+    $('pct').textContent = '—';
+    $('band').textContent = u.undefinedBand;
+    $('pin').style.left = '50%';
+    $('r3p').textContent = u.undefinedText;
+    return;
+  }
+
+  $('pct').textContent = finalPct + '%';
+  $('pin').style.left = finalPct + '%';
+
+  const bandIdx = finalPct < 20 ? 0 : finalPct < 40 ? 1 : finalPct < 60 ? 2 : finalPct < 80 ? 3 : 4;
+  $('band').textContent = u.bands[bandIdx][0] + u.bandSuffix;
+  $('r3p').textContent = u.bands[bandIdx][1];
+}
+
+function toggleLang() {
+  lang = lang === 'pt' ? 'en' : 'pt';
+  if ($('result').style.display === 'block') renderResult();
+  else render();
+  applyChrome();
+  if ($('shareOverlay').classList.contains('open')) renderShareModal();
+}
+$('langBtn').onclick = toggleLang;
+$('langBtn2').onclick = toggleLang;
+
+// ---------- Share ----------
+// The shareable URL: the configured SHARE_URL if set, otherwise the current
+// location. Inside a sandboxed iframe location.href is the iframe's own URL,
+// which is why SHARE_URL exists — set it after deploying so the link is right.
+function shareUrl() {
+  return (SHARE_URL && SHARE_URL.trim()) ? SHARE_URL.trim() : location.href.split('#')[0];
+}
+
+function renderShareModal() {
+  const u = UI[lang];
+  const url = shareUrl();
+  $('shareHeading').textContent = u.shareHeading;
+  $('shareCopyBtn').textContent = u.shareCopy;
+  $('shareUrlInput').value = url;
+  const waMsg = u.shareText + ' ' + url;
+  $('shareWhatsApp').href = 'https://wa.me/?text=' + encodeURIComponent(waMsg);
+  $('shareTelegram').href = 'https://t.me/share/url?url=' + encodeURIComponent(url) +
+    '&text=' + encodeURIComponent(u.shareText);
+}
+
+function openShareModal() {
+  renderShareModal();
+  $('shareOverlay').classList.add('open');
+  const input = $('shareUrlInput');
+  // Pre-select so the user can immediately Ctrl+C / long-press → copy.
+  setTimeout(() => { input.focus(); input.select(); }, 0);
+}
+
+function closeShareModal() {
+  $('shareOverlay').classList.remove('open');
+}
+
+async function copyShareUrl() {
+  const u = UI[lang];
+  const input = $('shareUrlInput');
+  const btn = $('shareCopyBtn');
+  const url = input.value;
+  let ok = false;
+  // Async Clipboard API first; it's blocked in some sandboxed iframes.
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try { await navigator.clipboard.writeText(url); ok = true; } catch (e) { ok = false; }
+  }
+  // Legacy fallback that works via a user gesture even where the async API is blocked.
+  if (!ok) {
+    try { input.focus(); input.select(); ok = document.execCommand('copy'); }
+    catch (e) { ok = false; }
+  }
+  if (ok) {
+    btn.textContent = u.shareCopyDone;
+    setTimeout(() => { btn.textContent = UI[lang].shareCopy; }, 1800);
+  }
+}
+
+async function doShare() {
+  const u = UI[lang];
+  const url = shareUrl();
+  // Try the native share sheet FIRST on http(s) pages (mainly mobile). If it
+  // succeeds we're done. If it's absent or throws — cancelled, or blocked by an
+  // iframe permissions policy — fall through to the always-visible modal.
+  if (/^https?:$/.test(location.protocol) && navigator.share) {
+    try { await navigator.share({ title: u.title, text: u.shareText, url }); return; }
+    catch (e) { /* fall through to modal */ }
+  }
+  openShareModal();
+}
+
+$('shareBtn').onclick = () => doShare();
+$('shareBtn2').onclick = () => doShare();
+$('shareClose').onclick = closeShareModal;
+$('shareCopyBtn').onclick = copyShareUrl;
+$('shareOverlay').onclick = (e) => { if (e.target === $('shareOverlay')) closeShareModal(); };
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && $('shareOverlay').classList.contains('open')) closeShareModal();
+});
+
+render();
+</script>
+</body>
+</html>
